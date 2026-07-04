@@ -35,6 +35,9 @@ window.authService = (() => {
       method: 'POST', 
       body: JSON.stringify({ email: loginId.trim(), password: password.trim() }) 
     });
+    if (res && res.success === false) {
+      return res;
+    }
     if (res && res.token) {
       return {
         success: true,
@@ -57,8 +60,16 @@ window.authService = (() => {
       await request('/mock-delay');
       return { success: true, message: 'Signup successful, please verify email' };
     }
+    const company = payload.companyName || 'Emerald';
+    const year = new Date().getFullYear();
+    const rand = Math.floor(1000 + Math.random() * 9000).toString();
+    const co = company.substring(0, 2).toUpperCase();
+    const names = (payload.name || 'HR User').split(' ');
+    const f = (names[0] ? names[0].substring(0, 2) : 'HR').toUpperCase();
+    const generatedEmpId = `HR-${co}${f}${year}${rand}`;
+
     const backendPayload = {
-      employeeId: payload.employeeId || 'HR001',
+      employeeId: payload.employeeId || generatedEmpId,
       fullName: payload.name,
       email: payload.email,
       password: payload.password,
@@ -68,6 +79,9 @@ window.authService = (() => {
       method: 'POST', 
       body: JSON.stringify(backendPayload) 
     });
+    if (res && res.success === false) {
+      return res;
+    }
     if (res && res.message) {
       return { success: true, message: res.message };
     }
