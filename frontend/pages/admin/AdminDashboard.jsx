@@ -4,6 +4,17 @@ window.AdminDashboardModule = (() => {
 
   const AdminDashboard = () => {
     const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
+    const [employees, setEmployees] = useState([]);
+
+    React.useEffect(() => {
+      const loadEmployees = async () => {
+        const res = await window.employeeService.listEmployees();
+        if (res.success) {
+          setEmployees(res.data);
+        }
+      };
+      loadEmployees();
+    }, []);
 
     const handleEmployeeJump = (e) => {
       e.preventDefault();
@@ -27,8 +38,8 @@ window.AdminDashboardModule = (() => {
               className="bg-base border border-subtle rounded-lg px-4 py-2 text-sm text-primary focus:outline-none focus:border-accent"
             >
               <option value="">Jump to employee...</option>
-              {window.mockData.users.filter(u => u.role === 'EMPLOYEE').map(u => (
-                <option key={u.id} value={u.id}>{u.name} ({u.id})</option>
+              {employees.filter(u => u.role !== 'HR' && u.role !== 'ADMIN').map(u => (
+                <option key={u.id} value={u.id}>{u.name} ({u.employeeId})</option>
               ))}
             </select>
             <button type="submit" className="bg-surface-raised border border-subtle px-4 py-2 rounded-lg text-sm hover:text-accent transition-colors">
@@ -40,17 +51,17 @@ window.AdminDashboardModule = (() => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="card rounded-xl p-6 border-t-2 border-t-accent">
             <h3 className="text-secondary text-sm font-medium mb-1 uppercase tracking-wider">Total Headcount</h3>
-            <div className="text-4xl font-manrope font-bold tracking-tight">42</div>
-            <div className="text-xs text-status-present mt-2">+2 this month</div>
+            <div className="text-4xl font-manrope font-bold tracking-tight">{employees.length}</div>
+            <div className="text-xs text-status-present mt-2">Active employees</div>
           </div>
           <div className="card rounded-xl p-6 border-t-2 border-t-status-present">
             <h3 className="text-secondary text-sm font-medium mb-1 uppercase tracking-wider">Present Today</h3>
-            <div className="text-4xl font-manrope font-bold tracking-tight">38</div>
-            <div className="text-xs text-secondary mt-2">90% attendance rate</div>
+            <div className="text-4xl font-manrope font-bold tracking-tight">-</div>
+            <div className="text-xs text-secondary mt-2">Data not available</div>
           </div>
           <div className="card rounded-xl p-6 border-t-2 border-t-status-pending">
             <h3 className="text-secondary text-sm font-medium mb-1 uppercase tracking-wider">Pending Leaves</h3>
-            <div className="text-4xl font-manrope font-bold tracking-tight">5</div>
+            <div className="text-4xl font-manrope font-bold tracking-tight">0</div>
             <a href="#/admin/leave" className="text-xs text-accent mt-2 cursor-pointer hover:underline block">Review requests &rarr;</a>
           </div>
         </div>
@@ -71,20 +82,10 @@ window.AdminDashboardModule = (() => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-subtle">
-                  <tr className="hover:bg-surface-raised transition-colors">
-                    <td className="px-4 py-3 font-medium text-primary">Surajit Mondal</td>
-                    <td className="px-4 py-3"><span className="text-xs bg-status-present/10 text-status-present px-2 py-1 rounded border border-status-present/20">Present</span></td>
-                    <td className="px-4 py-3 text-secondary">09:02 AM</td>
-                  </tr>
-                  <tr className="hover:bg-surface-raised transition-colors">
-                    <td className="px-4 py-3 font-medium text-primary">Sibsankar Maity</td>
-                    <td className="px-4 py-3"><span className="text-xs bg-status-absent/10 text-status-absent px-2 py-1 rounded border border-status-absent/20">Absent</span></td>
-                    <td className="px-4 py-3 text-secondary">--</td>
-                  </tr>
-                  <tr className="hover:bg-surface-raised transition-colors">
-                    <td className="px-4 py-3 font-medium text-primary">Surajit Samanta</td>
-                    <td className="px-4 py-3"><span className="text-xs bg-status-pending/10 text-status-pending px-2 py-1 rounded border border-status-pending/20">Half-day</span></td>
-                    <td className="px-4 py-3 text-secondary">01:15 PM</td>
+                  <tr>
+                    <td colSpan="3" className="px-4 py-8 text-center text-secondary">
+                      No recent attendance data.
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -96,22 +97,8 @@ window.AdminDashboardModule = (() => {
               <h3 className="font-manrope text-xl font-bold">Leave Approvals</h3>
               <a href="#/admin/leave" className="text-sm text-accent hover:underline">View all</a>
             </div>
-            <div className="card rounded-xl overflow-hidden">
-              <div className="divide-y divide-subtle">
-                <div className="p-4 hover:bg-surface-raised transition-colors">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <div className="font-medium text-primary text-sm">Sujan Bhowmik</div>
-                      <div className="text-xs text-secondary">Annual Leave (3 days)</div>
-                    </div>
-                    <span className="text-xs bg-status-pending/10 text-status-pending px-2 py-1 rounded border border-status-pending/20">Pending</span>
-                  </div>
-                  <div className="flex gap-2 mt-3">
-                    <button className="flex-1 bg-status-present text-base text-xs font-semibold py-1.5 rounded hover:opacity-90 text-base" style={{color: '#0A0A0B'}}>Approve</button>
-                    <button className="flex-1 border border-status-absent text-status-absent text-xs font-semibold py-1.5 rounded hover:bg-status-absent/10">Reject</button>
-                  </div>
-                </div>
-              </div>
+            <div className="card rounded-xl overflow-hidden p-8 text-center text-secondary">
+               No pending leave requests.
             </div>
           </div>
         </div>
