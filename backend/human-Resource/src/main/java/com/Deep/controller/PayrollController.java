@@ -36,4 +36,14 @@ public class PayrollController {
         return ResponseEntity.ok(
                 payrollService.getMyPayslips(employeeId));
     }
+
+    // HR/Admin - Get All Payroll
+    @GetMapping("/api/admin/payroll")
+    public ResponseEntity<List<PayrollResponse>> getAllPayroll(
+            @RequestParam String month,
+            @RequestParam Integer year) {
+
+        return ResponseEntity.ok(
+                payrollService.getAllPayroll(month, year));
+    }
 }

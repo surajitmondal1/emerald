@@ -83,10 +83,19 @@ public class LeaveServiceImpl implements LeaveService {
         return map(leave);
     }
 
+    @Override
+    public List<LeaveResponseDTO> getAllLeaves() {
+        return leaveRepository.findAll()
+                .stream()
+                .map(this::map)
+                .toList();
+    }
+
     private LeaveResponseDTO map(LeaveRequest leave){
 
         return LeaveResponseDTO.builder()
                 .id(leave.getId())
+                .employeeId(leave.getEmployee().getEmployeeId())
                 .employeeName(leave.getEmployee().getFullName())
                 .type(leave.getType())
                 .startDate(leave.getStartDate())
@@ -95,5 +104,4 @@ public class LeaveServiceImpl implements LeaveService {
                 .status(leave.getStatus())
                 .build();
     }
-
 }

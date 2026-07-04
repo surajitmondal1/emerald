@@ -41,6 +41,19 @@ window.attendanceService = (() => {
       return history;
   };
 
+  const mapBackendRecord = (record) => {
+    if (!record) return null;
+    return {
+      id: record.id,
+      employeeId: record.employeeId || '',
+      name: record.employeeName,
+      date: record.attendanceDate,
+      status: record.status,
+      checkIn: record.checkInTime ? new Date(record.checkInTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : null,
+      checkOut: record.checkOutTime ? new Date(record.checkOutTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : null,
+    };
+  };
+
   const getMyAttendance = async (range = {}) => {
     if (window.CONFIG.MOCK_MODE) {
       await request('/mock-delay');
@@ -51,7 +64,9 @@ window.attendanceService = (() => {
       }
       return { success: true, data: history };
     }
-    return request(`/attendance/me?start=${range.start || ''}&end=${range.end || ''}`);
+    const session = JSON.parse(localStorage.getItem('emerald_session'));
+    const res = await request(`/attendance/my-attendance?employeeId=${session.id}`);
+    return { success: !!res, data: Array.isArray(res) ? res.map(mapBackendRecord) : [] };
   };
 
   const checkIn = async () => {
@@ -69,7 +84,12 @@ window.attendanceService = (() => {
       };
       return { success: true, data: mockTodayAttendance };
     }
-    return request('/attendance/check-in', { method: 'POST' });
+    const session = JSON.parse(localStorage.getItem('emerald_session'));
+    const res = await request(`/attendance/clock?employeeId=${session.id}`, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'IN' })
+    });
+    return { success: !!res, data: mapBackendRecord(res) };
   };
 
   const checkOut = async () => {
@@ -80,7 +100,12 @@ window.attendanceService = (() => {
       }
       return { success: true, data: mockTodayAttendance };
     }
-    return request('/attendance/check-out', { method: 'POST' });
+    const session = JSON.parse(localStorage.getItem('emerald_session'));
+    const res = await request(`/attendance/clock?employeeId=${session.id}`, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'OUT' })
+    });
+    return { success: !!res, data: mapBackendRecord(res) };
   };
 
   const getAllAttendance = async (filters = {}) => {
@@ -101,8 +126,9 @@ window.attendanceService = (() => {
       
       return { success: true, data: records.slice(0, 50) }; 
     }
-    const qs = new URLSearchParams(filters).toString();
-    return request(`/admin/attendance?${qs}`);
+    const date = filters.date || new Date().toISOString().split('T')[0];
+    const res = await request(`/attendance/admin?date=${date}`);
+    return { success: !!res, data: Array.isArray(res) ? res.map(mapBackendRecord) : [] };
   };
 
   return { getMyAttendance, checkIn, checkOut, getAllAttendance };

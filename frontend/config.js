@@ -1,4 +1,4 @@
 window.CONFIG = {
-  MOCK_MODE: true,
-  API_BASE_URL: "http://localhost:8080/api"
+  MOCK_MODE: false,
+  API_BASE_URL: "http://localhost:5001/api"
 };

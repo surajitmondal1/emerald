@@ -66,10 +66,19 @@ public class PayrollServiceImpl implements PayrollService {
                 .toList();
     }
 
+    @Override
+    public List<PayrollResponse> getAllPayroll(String month, Integer year) {
+        return payrollRepository.findByMonthAndYear(month, year)
+                .stream()
+                .map(this::map)
+                .toList();
+    }
+
     private PayrollResponse map(Payroll payroll) {
 
         return PayrollResponse.builder()
                 .id(payroll.getId())
+                .employeeId(payroll.getEmployee().getEmployeeId())
                 .employeeName(payroll.getEmployee().getFullName())
                 .month(payroll.getMonth())
                 .year(payroll.getYear())

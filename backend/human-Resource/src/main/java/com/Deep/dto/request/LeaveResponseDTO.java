@@ -15,6 +15,8 @@ public class LeaveResponseDTO {
 
     private String employeeName;
 
+    private String employeeId;
+
     private LeaveType type;
 
     private LocalDate startDate;

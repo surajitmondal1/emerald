@@ -10,4 +10,6 @@ public interface PayrollService {
     List<PayrollResponse> generatePayroll(PayrollRequest request);
 
     List<PayrollResponse> getMyPayslips(Long employeeId);
+
+    List<PayrollResponse> getAllPayroll(String month, Integer year);
 }

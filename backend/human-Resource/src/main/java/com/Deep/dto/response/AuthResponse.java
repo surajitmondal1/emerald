@@ -15,4 +15,14 @@ public class AuthResponse {
     private String token;
 
     private String message;
+
+    private Long id;
+
+    private String employeeId;
+
+    private String fullName;
+
+    private String email;
+
+    private String role;
 }

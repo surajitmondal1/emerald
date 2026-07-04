@@ -53,4 +53,8 @@ public class LeaveController {
                 leaveService.rejectLeave(leaveId));
     }
 
+    @GetMapping("/admin")
+    public ResponseEntity<List<LeaveResponseDTO>> getAllLeaves() {
+        return ResponseEntity.ok(leaveService.getAllLeaves());
+    }
 }

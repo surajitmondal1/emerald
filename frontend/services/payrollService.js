@@ -20,6 +20,22 @@ window.payrollService = (() => {
 
   let currentMonthGenerated = false;
 
+  const mapBackendPayroll = (p) => {
+    if (!p) return null;
+    return {
+      id: p.id,
+      employeeId: p.employeeId || '',
+      name: p.employeeName,
+      month: p.month,
+      year: p.year,
+      basic: p.basicSalary,
+      allowances: p.allowance,
+      deductions: p.deduction,
+      net: p.netSalary,
+      status: p.status
+    };
+  };
+
   const getMyPayslips = async () => {
     if (window.CONFIG.MOCK_MODE) {
       await request('/mock-delay');
@@ -42,7 +58,9 @@ window.payrollService = (() => {
       }
       return { success: true, data: slips };
     }
-    return request('/payroll/me');
+    const session = JSON.parse(localStorage.getItem('emerald_session'));
+    const res = await request(`/payroll/my-payslips?employeeId=${session.id}`);
+    return { success: !!res, data: Array.isArray(res) ? res.map(mapBackendPayroll) : [] };
   };
 
   const getAllPayroll = async (month, year) => {
@@ -65,7 +83,8 @@ window.payrollService = (() => {
 
       return { success: true, data: records };
     }
-    return request(`/admin/payroll?month=${month}&year=${year}`);
+    const res = await request(`/admin/payroll?month=${month}&year=${year}`);
+    return { success: !!res, data: Array.isArray(res) ? res.map(mapBackendPayroll) : [] };
   };
 
   const generatePayroll = async (month, year) => {
@@ -74,7 +93,8 @@ window.payrollService = (() => {
       currentMonthGenerated = true;
       return { success: true, message: `Payroll generated for ${month} ${year}` };
     }
-    return request('/admin/payroll/generate', { method: 'POST', body: JSON.stringify({ month, year }) });
+    const res = await request('/admin/payroll/generate', { method: 'POST', body: JSON.stringify({ month, year }) });
+    return { success: !!res, message: 'Payroll generated successfully' };
   };
 
   return { getMyPayslips, getAllPayroll, generatePayroll };

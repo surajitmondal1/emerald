@@ -34,6 +34,28 @@ window.employeeService = (() => {
       }));
   }
 
+  const mapBackendEmployee = (emp) => {
+    if (!emp) return null;
+    return {
+      id: emp.id,
+      employeeId: emp.employeeId,
+      name: emp.fullName,
+      email: emp.email,
+      phone: emp.phone,
+      address: emp.address,
+      designation: emp.designation,
+      department: emp.departmentName,
+      role: emp.role === 'ADMIN' ? 'HR' : emp.role,
+      status: emp.status || 'ACTIVE',
+      profilePicture: `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.fullName || 'User')}&background=C9A34E&color=fff`,
+      salary: {
+        basic: emp.salary || 0,
+        allowances: (emp.salary || 0) * 0.10,
+        deductions: (emp.salary || 0) * 0.05
+      }
+    };
+  };
+
   const getProfile = async () => {
     if (window.CONFIG.MOCK_MODE) {
       await request('/mock-delay');
@@ -41,7 +63,9 @@ window.employeeService = (() => {
       const user = window.mockData.users.find(u => u.id === session.id);
       return { success: true, data: user };
     }
-    return request('/employee/profile');
+    const session = JSON.parse(localStorage.getItem('emerald_session'));
+    const res = await request(`/employees/${session.id}`);
+    return { success: !!res, data: mapBackendEmployee(res) };
   };
 
   const updateProfile = async (fields) => {
@@ -53,7 +77,8 @@ window.employeeService = (() => {
       localStorage.setItem('emerald_users', JSON.stringify(window.mockData.users));
       return { success: true, data: window.mockData.users[index] };
     }
-    return request('/employee/profile', { method: 'PUT', body: JSON.stringify(fields) });
+    const session = JSON.parse(localStorage.getItem('emerald_session'));
+    return updateEmployeeById(session.id, fields);
   };
 
   const getEmployeeById = async (id) => {
@@ -62,7 +87,8 @@ window.employeeService = (() => {
       const user = window.mockData.users.find(u => u.id === id);
       return user ? { success: true, data: user } : { success: false, message: 'Not found' };
     }
-    return request(`/admin/employees/${id}`);
+    const res = await request(`/employees/${id}`);
+    return res ? { success: true, data: mapBackendEmployee(res) } : { success: false, message: 'Not found' };
   };
 
   const updateEmployeeById = async (id, fields) => {
@@ -74,7 +100,21 @@ window.employeeService = (() => {
       localStorage.setItem('emerald_users', JSON.stringify(window.mockData.users));
       return { success: true, data: window.mockData.users[index] };
     }
-    return request(`/admin/employees/${id}`, { method: 'PUT', body: JSON.stringify(fields) });
+    const backendPayload = {
+      fullName: fields.name,
+      email: fields.email,
+      phone: fields.phone,
+      address: fields.address,
+      designation: fields.designation,
+      departmentName: fields.department,
+      role: fields.role === 'HR' ? 'ADMIN' : fields.role,
+      salary: fields.salary?.basic
+    };
+    Object.keys(backendPayload).forEach(key => {
+      if (backendPayload[key] === undefined) delete backendPayload[key];
+    });
+    const res = await request(`/employees/${id}`, { method: 'PUT', body: JSON.stringify(backendPayload) });
+    return { success: !!res, data: mapBackendEmployee(res) };
   };
 
   const listEmployees = async (filters = {}) => {
@@ -87,8 +127,13 @@ window.employeeService = (() => {
       }
       return { success: true, data: users };
     }
-    const qs = new URLSearchParams(filters).toString();
-    return request(`/admin/employees?${qs}`);
+    const res = await request('/employees');
+    let data = Array.isArray(res) ? res.map(mapBackendEmployee) : [];
+    if (filters.search) {
+      const q = filters.search.toLowerCase();
+      data = data.filter(e => e.name.toLowerCase().includes(q) || e.employeeId.toLowerCase().includes(q));
+    }
+    return { success: true, data };
   };
 
   const generateId = (companyName, name, year) => {
@@ -121,7 +166,33 @@ window.employeeService = (() => {
       localStorage.setItem('emerald_users', JSON.stringify(window.mockData.users));
       return { success: true, data: newUser };
     }
-    return request('/admin/employees', { method: 'POST', body: JSON.stringify(fields) });
+    const companyName = localStorage.getItem('companyName') || 'Emerald';
+    const year = new Date().getFullYear();
+    const serial = Math.floor(1000 + Math.random() * 9000).toString();
+    const co = companyName.substring(0, 2).toUpperCase();
+    const names = fields.name.split(' ');
+    const f = (names[0] ? names[0].substring(0, 2) : 'XX').toUpperCase();
+    const l = (names.length > 1 ? names[names.length - 1].substring(0, 2) : f).toUpperCase();
+    const empId = `${co}${f}${l}${year}${serial}`;
+
+    const backendPayload = {
+      employeeId: empId,
+      fullName: fields.name,
+      email: fields.email,
+      phone: fields.phone || '+1 555-0192',
+      address: fields.address || '123 Main St',
+      designation: fields.designation,
+      salary: parseFloat(fields.basic) || 50000,
+      joiningDate: new Date().toISOString().split('T')[0],
+      departmentName: fields.department || 'General',
+      role: fields.role === 'HR' ? 'ADMIN' : fields.role
+    };
+
+    const res = await request('/employees', {
+      method: 'POST',
+      body: JSON.stringify(backendPayload)
+    });
+    return { success: !!res, data: res ? { id: res.employeeId, password: res.password } : null };
   };
 
   return { getProfile, updateProfile, getEmployeeById, updateEmployeeById, listEmployees, createEmployee };

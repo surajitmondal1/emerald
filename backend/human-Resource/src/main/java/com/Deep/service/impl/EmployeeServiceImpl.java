@@ -4,11 +4,14 @@ import com.Deep.dto.request.EmployeeRequest;
 import com.Deep.dto.request.EmployeeResponse;
 import com.Deep.model.Department;
 import com.Deep.model.Employee;
+import com.Deep.model.User;
+import com.Deep.enums.Role;
 import com.Deep.repository.DepartmentRepository;
 import com.Deep.repository.EmployeeRepository;
+import com.Deep.repository.UserRepository;
 import com.Deep.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,7 +21,9 @@ import java.util.List;
 public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
-    private  final DepartmentRepository departmentRepository;
+    private final DepartmentRepository departmentRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public EmployeeResponse addEmployee(EmployeeRequest request) {
@@ -31,8 +36,31 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new RuntimeException("Email already exists");
         }
 
-        Department department = departmentRepository.findById(request.getDepartmentId())
-                .orElseThrow(() -> new RuntimeException("Department not found"));
+        Department department = null;
+        if (request.getDepartmentId() != null) {
+            department = departmentRepository.findById(request.getDepartmentId()).orElse(null);
+        }
+        if (department == null && request.getDepartmentName() != null && !request.getDepartmentName().trim().isEmpty()) {
+            String name = request.getDepartmentName().trim();
+            department = departmentRepository.findByDepartmentName(name)
+                .orElseGet(() -> {
+                    Department newDept = Department.builder()
+                        .departmentName(name)
+                        .departmentCode(name.substring(0, Math.min(3, name.length())).toUpperCase())
+                        .build();
+                    return departmentRepository.save(newDept);
+                });
+        }
+        if (department == null) {
+            department = departmentRepository.findByDepartmentName("General")
+                .orElseGet(() -> {
+                    Department general = Department.builder()
+                        .departmentName("General")
+                        .departmentCode("GEN")
+                        .build();
+                    return departmentRepository.save(general);
+                });
+        }
 
         Employee employee = Employee.builder()
                 .employeeId(request.getEmployeeId())
@@ -48,7 +76,21 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         employeeRepository.save(employee);
 
-        return mapToResponse(employee);
+        // Auto register User login
+        String generatedPassword = "Emp" + (int)(Math.random() * 900000 + 100000) + "!";
+        User user = User.builder()
+                .employeeId(employee.getEmployeeId())
+                .fullName(employee.getFullName())
+                .email(employee.getEmail())
+                .password(passwordEncoder.encode(generatedPassword))
+                .role(request.getRole() != null ? request.getRole() : Role.EMPLOYEE)
+                .build();
+        userRepository.save(user);
+
+        EmployeeResponse response = mapToResponse(employee);
+        response.setPassword(generatedPassword);
+        response.setRole(user.getRole().name());
+        return response;
     }
 
     @Override
@@ -75,17 +117,55 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
 
-        Department department = departmentRepository.findById(request.getDepartmentId())
-                .orElseThrow(() -> new RuntimeException("Department not found"));
+        if (request.getFullName() != null && !request.getFullName().trim().isEmpty()) {
+            employee.setFullName(request.getFullName());
+        }
+        if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
+            employee.setEmail(request.getEmail());
+        }
+        if (request.getPhone() != null && !request.getPhone().trim().isEmpty()) {
+            employee.setPhone(request.getPhone());
+        }
+        if (request.getAddress() != null) {
+            employee.setAddress(request.getAddress());
+        }
+        if (request.getDesignation() != null && !request.getDesignation().trim().isEmpty()) {
+            employee.setDesignation(request.getDesignation());
+        }
+        if (request.getSalary() != null) {
+            employee.setSalary(request.getSalary());
+        }
+        if (request.getJoiningDate() != null) {
+            employee.setJoiningDate(request.getJoiningDate());
+        }
 
-        employee.setFullName(request.getFullName());
-        employee.setEmail(request.getEmail());
-        employee.setPhone(request.getPhone());
-        employee.setAddress(request.getAddress());
-        employee.setDesignation(request.getDesignation());
-        employee.setSalary(request.getSalary());
-        employee.setJoiningDate(request.getJoiningDate());
-        employee.setDepartment(department);
+        Department department = null;
+        if (request.getDepartmentId() != null) {
+            department = departmentRepository.findById(request.getDepartmentId()).orElse(null);
+        }
+        if (department == null && request.getDepartmentName() != null && !request.getDepartmentName().trim().isEmpty()) {
+            String name = request.getDepartmentName().trim();
+            department = departmentRepository.findByDepartmentName(name)
+                .orElseGet(() -> {
+                    Department newDept = Department.builder()
+                        .departmentName(name)
+                        .departmentCode(name.substring(0, Math.min(3, name.length())).toUpperCase())
+                        .build();
+                    return departmentRepository.save(newDept);
+                });
+        }
+        if (department != null) {
+            employee.setDepartment(department);
+        }
+
+        userRepository.findByEmployeeId(employee.getEmployeeId()).ifPresent(user -> {
+            user.setFullName(employee.getFullName());
+            user.setEmail(employee.getEmail());
+            if (request.getRole() != null) {
+                user.setRole(request.getRole());
+            }
+            userRepository.save(user);
+        });
 
         employeeRepository.save(employee);
 
@@ -102,6 +182,9 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     private EmployeeResponse mapToResponse(Employee employee){
+        String roleStr = userRepository.findByEmployeeId(employee.getEmployeeId())
+                .map(u -> u.getRole().name())
+                .orElse("EMPLOYEE");
 
         return EmployeeResponse.builder()
                 .id(employee.getId())
@@ -113,7 +196,8 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .designation(employee.getDesignation())
                 .salary(employee.getSalary())
                 .joiningDate(employee.getJoiningDate())
-                .departmentName(employee.getDepartment().getDepartmentName())
+                .departmentName(employee.getDepartment() != null ? employee.getDepartment().getDepartmentName() : "General")
+                .role(roleStr)
                 .build();
     }
 }

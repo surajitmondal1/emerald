@@ -14,4 +14,5 @@ public interface LeaveService {
 
     LeaveResponseDTO rejectLeave(Long leaveId);
 
+    List<LeaveResponseDTO> getAllLeaves();
 }

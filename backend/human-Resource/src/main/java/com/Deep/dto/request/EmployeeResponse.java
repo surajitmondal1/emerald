@@ -28,4 +28,8 @@ public class EmployeeResponse {
     private LocalDate joiningDate;
 
     private String departmentName;
+
+    private String password;
+
+    private String role;
 }

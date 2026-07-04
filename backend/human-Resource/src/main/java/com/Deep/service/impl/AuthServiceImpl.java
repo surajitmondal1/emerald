@@ -4,7 +4,9 @@ import com.Deep.dto.request.LoginRequest;
 import com.Deep.dto.request.RegisterRequest;
 import com.Deep.dto.response.AuthResponse;
 import com.Deep.model.User;
+import com.Deep.model.Employee;
 import com.Deep.repository.UserRepository;
+import com.Deep.repository.EmployeeRepository;
 import com.Deep.security.JwtService;
 import com.Deep.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
+    private final EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -64,9 +67,17 @@ public class AuthServiceImpl implements AuthService {
 
         String token = jwtService.generateToken(user.getEmail());
 
+        Employee employee = employeeRepository.findByEmail(user.getEmail()).orElse(null);
+        Long id = (employee != null) ? employee.getId() : user.getId();
+
         return AuthResponse.builder()
                 .message("Login Successful")
                 .token(token)
+                .id(id)
+                .employeeId(user.getEmployeeId())
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .role(user.getRole().name())
                 .build();
     }
 }
