@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emerald HRMS</title>
+    <link rel="icon" type="image/jpeg" href="assets/logo.jpeg">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles/custom.css">
+
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        base: 'var(--bg-base)',
+                        surface: 'var(--bg-surface)',
+                        'surface-raised': 'var(--bg-surface-raised)',
+                        subtle: 'var(--border-subtle)',
+                        primary: 'var(--text-primary)',
+                        secondary: 'var(--text-secondary)',
+                        accent: 'var(--accent)',
+                        'accent-soft': 'var(--accent-soft)',
+                        'status-present': 'var(--status-present)',
+                        'status-absent': 'var(--status-absent)',
+                        'status-pending': 'var(--status-pending)',
+                        'status-leave': 'var(--status-leave)',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        manrope: ['Manrope', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- React & ReactDOM (CDN) -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    
+    <!-- Babel for JSX transpilation in-browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Config & Mock Data -->
+    <script src="config.js"></script>
+    <script src="services/mockData.js"></script>
+    
+    <!-- Services placeholders -->
+    <script src="services/api.js"></script>
+    <script src="services/authService.js"></script>
+    <script src="services/employeeService.js"></script>
+    <script src="services/attendanceService.js"></script>
+    <script src="services/leaveService.js"></script>
+    <script src="services/payrollService.js"></script>
+</head>
+<body class="bg-base text-primary min-h-screen w-full">
+    <div id="root"></div>
+
+    <!-- Context & Router -->
+    <script type="text/babel" src="context/AuthContext.jsx"></script>
+    <script type="text/babel" src="router/HashRouter.jsx"></script>
+
+    <!-- Layout Components -->
+    <script type="text/babel" src="components/layout/Sidebar.jsx"></script>
+    <script type="text/babel" src="components/layout/Topbar.jsx"></script>
+    <script type="text/babel" src="components/layout/DashboardLayout.jsx"></script>
+    <script type="text/babel" src="components/layout/ProtectedRoute.jsx"></script>
+
+    <!-- Pages (Phase 1) -->
+    <script type="text/babel" src="pages/auth/SignIn.jsx"></script>
+    <script type="text/babel" src="pages/auth/SignUp.jsx"></script>
+    <script type="text/babel" src="pages/auth/VerifyEmail.jsx"></script>
+    <script type="text/babel" src="pages/employee/EmployeeDashboard.jsx"></script>
+    <script type="text/babel" src="pages/employee/MyProfile.jsx"></script>
+    <script type="text/babel" src="pages/employee/MyAttendance.jsx"></script>
+    <script type="text/babel" src="pages/employee/MyLeave.jsx"></script>
+    <script type="text/babel" src="pages/employee/MyPayroll.jsx"></script>
+
+    <!-- Pages (Phase 2 & 3 & 4 & 5 & 6) -->
+    <script type="text/babel" src="pages/admin/AdminDashboard.jsx"></script>
+    <script type="text/babel" src="pages/admin/EmployeeList.jsx"></script>
+    <script type="text/babel" src="pages/admin/EmployeeDetail.jsx"></script>
+    <script type="text/babel" src="pages/admin/AttendanceOverview.jsx"></script>
+    <script type="text/babel" src="pages/admin/LeaveApprovals.jsx"></script>
+    <script type="text/babel" src="pages/admin/PayrollManagement.jsx"></script>
+
+    <!-- App Entry -->
+    <script type="text/babel" src="app.jsx"></script>
+    
+    <script>
+      // Initialize Lucide icons if needed natively outside react
+      // lucide.createIcons();
+    </script>
+</body>
+</html>
