@@ -43,7 +43,7 @@ window.SignUpModule = (() => {
 
       if (res.success) {
         localStorage.setItem('companyName', formData.companyName);
-        window.location.hash = '#/verify-email';
+        window.location.hash = '#/login?registered=true';
       } else {
         setError(res.message || 'Signup failed');
       }

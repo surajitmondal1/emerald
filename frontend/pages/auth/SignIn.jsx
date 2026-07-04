@@ -33,6 +33,12 @@ window.SignInModule = (() => {
             <p className="text-secondary text-sm">Sign in to your account</p>
           </div>
           
+          {window.location.hash.includes('registered=true') && (
+            <div className="mb-4 p-3 bg-status-present/10 border border-status-present/30 text-status-present rounded text-sm text-center">
+              Registration successful! Please sign in.
+            </div>
+          )}
+          
           {error && <div className="mb-4 p-3 bg-status-absent/10 border border-status-absent/30 text-status-absent rounded text-sm">{error}</div>}
           
           <form onSubmit={handleSubmit} className="space-y-5">
