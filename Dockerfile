@@ -1,8 +1,10 @@
 # Build stage
 FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
-COPY pom.xml .
-COPY src ./src
+# Copy the pom.xml and source code from the backend folder
+COPY backend/human-Resource/pom.xml .
+COPY backend/human-Resource/src ./src
+# Build the application
 RUN mvn clean package -DskipTests
 
 # Run stage
