@@ -7,7 +7,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import com.Deep.repository.UserRepository;
 import com.Deep.model.User;
-import com.Deep.model.Role;
+import com.Deep.enums.Role;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @SpringBootApplication
