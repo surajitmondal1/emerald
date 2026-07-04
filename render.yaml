@@ -1,0 +1,16 @@
+services:
+  # 1. Spring Boot Backend (Docker)
+  - type: web
+    name: emerald-backend
+    env: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PORT
+        value: 5001
+
+  # 2. React Frontend (Static Site)
+  - type: web
+    name: emerald-frontend
+    env: static
+    buildCommand: "" # No build step needed since you are using CDNs
+    staticPublishPath: ./frontend
