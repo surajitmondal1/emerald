@@ -17,10 +17,13 @@ const { PayrollManagement } = window.PayrollManagementModule;
 const { ProtectedRoute } = window.ProtectedRouteModule;
 
 function App() {
+  const { Provider } = window.ReactRedux;
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <Provider store={window.store}>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </Provider>
   );
 }
 
