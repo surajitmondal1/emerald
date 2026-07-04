@@ -9,6 +9,7 @@ window.EmployeeListModule = (() => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [newEmp, setNewEmp] = useState({ name: '', email: '', role: 'EMPLOYEE', designation: '', department: '', basic: '50000' });
     const [creating, setCreating] = useState(false);
+    const [createError, setCreateError] = useState(null);
     const [createdCreds, setCreatedCreds] = useState(null);
 
     useEffect(() => {
@@ -27,12 +28,15 @@ window.EmployeeListModule = (() => {
     const handleCreate = async (e) => {
       e.preventDefault();
       setCreating(true);
+      setCreateError(null);
       const res = await window.employeeService.createEmployee(newEmp);
       setCreating(false);
       if (res.success) {
         setCreatedCreds({ id: res.data.id, password: res.data.password });
         setNewEmp({ name: '', email: '', role: 'EMPLOYEE', designation: '', department: '', basic: '50000' });
         loadEmployees();
+      } else {
+        setCreateError(res.message || 'Failed to create employee');
       }
     };
 
@@ -106,7 +110,7 @@ window.EmployeeListModule = (() => {
             <div className="card w-full max-w-lg rounded-xl shadow-2xl overflow-hidden border border-subtle">
               <div className="flex justify-between items-center p-6 border-b border-subtle">
                 <h3 className="font-manrope text-xl font-bold text-primary">Add New Employee</h3>
-                <button onClick={() => {setShowAddModal(false); setCreatedCreds(null);}} className="text-secondary hover:text-primary">&times;</button>
+                <button onClick={() => {setShowAddModal(false); setCreatedCreds(null); setCreateError(null);}} className="text-secondary hover:text-primary">&times;</button>
               </div>
               
               <div className="p-6">
@@ -121,10 +125,15 @@ window.EmployeeListModule = (() => {
                        <div className="flex justify-between"><span className="text-secondary">Login ID:</span> <span className="font-mono font-bold text-accent">{createdCreds.id}</span></div>
                        <div className="flex justify-between"><span className="text-secondary">Password:</span> <span className="font-mono font-bold text-primary">{createdCreds.password}</span></div>
                     </div>
-                    <button onClick={() => {setShowAddModal(false); setCreatedCreds(null);}} className="mt-6 w-full bg-surface-raised border border-subtle py-2 rounded-lg font-semibold hover:text-accent transition-colors">Done</button>
+                    <button onClick={() => {setShowAddModal(false); setCreatedCreds(null); setCreateError(null);}} className="mt-6 w-full bg-surface-raised border border-subtle py-2 rounded-lg font-semibold hover:text-accent transition-colors">Done</button>
                   </div>
                 ) : (
                   <form onSubmit={handleCreate} className="space-y-4">
+                    {createError && (
+                      <div className="bg-status-absent/10 border border-status-absent/30 text-status-absent text-sm p-3 rounded">
+                        {createError}
+                      </div>
+                    )}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-secondary text-xs font-medium mb-1">Full Name</label>

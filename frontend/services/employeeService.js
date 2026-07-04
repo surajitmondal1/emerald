@@ -65,7 +65,8 @@ window.employeeService = (() => {
     }
     const session = JSON.parse(localStorage.getItem('emerald_session'));
     const res = await request(`/employees/${session.id}`);
-    return { success: !!res, data: mapBackendEmployee(res) };
+    if (res && res.success === false) return res;
+    return { success: true, data: mapBackendEmployee(res) };
   };
 
   const updateProfile = async (fields) => {
@@ -88,7 +89,8 @@ window.employeeService = (() => {
       return user ? { success: true, data: user } : { success: false, message: 'Not found' };
     }
     const res = await request(`/employees/${id}`);
-    return res ? { success: true, data: mapBackendEmployee(res) } : { success: false, message: 'Not found' };
+    if (res && res.success === false) return res;
+    return { success: true, data: mapBackendEmployee(res) };
   };
 
   const updateEmployeeById = async (id, fields) => {
@@ -114,7 +116,8 @@ window.employeeService = (() => {
       if (backendPayload[key] === undefined) delete backendPayload[key];
     });
     const res = await request(`/employees/${id}`, { method: 'PUT', body: JSON.stringify(backendPayload) });
-    return { success: !!res, data: mapBackendEmployee(res) };
+    if (res && res.success === false) return res;
+    return { success: true, data: mapBackendEmployee(res) };
   };
 
   const listEmployees = async (filters = {}) => {
@@ -128,6 +131,7 @@ window.employeeService = (() => {
       return { success: true, data: users };
     }
     const res = await request('/employees');
+    if (res && res.success === false) return res;
     let data = Array.isArray(res) ? res.map(mapBackendEmployee) : [];
     if (filters.search) {
       const q = filters.search.toLowerCase();
@@ -192,7 +196,8 @@ window.employeeService = (() => {
       method: 'POST',
       body: JSON.stringify(backendPayload)
     });
-    return { success: !!res, data: res ? { id: res.employeeId, password: res.password } : null };
+    if (res && res.success === false) return res;
+    return { success: true, data: { id: res.employeeId, password: res.password } };
   };
 
   return { getProfile, updateProfile, getEmployeeById, updateEmployeeById, listEmployees, createEmployee };
