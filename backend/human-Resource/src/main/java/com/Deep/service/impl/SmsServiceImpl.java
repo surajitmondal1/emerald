@@ -93,6 +93,40 @@ public class SmsServiceImpl implements SmsService {
             }
         }
 
-        System.out.println("No real SMS gateway credentials configured (Twilio/Fast2SMS). Mock logged above.");
+        // 3. Fallback to Textbelt (Sends 1 free SMS per day to a real phone number without keys)
+        try {
+            String formattedPhone = toPhone.trim();
+            if (!formattedPhone.startsWith("+")) {
+                formattedPhone = "+91" + formattedPhone;
+            }
+
+            String url = "https://textbelt.com/text";
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            Map<String, String> body = Map.of(
+                "number", formattedPhone,
+                "message", message,
+                "key", "textbelt"
+            );
+
+            HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
+            ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
+
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                Map<?, ?> resBody = response.getBody();
+                Boolean success = (Boolean) resBody.get("success");
+                if (Boolean.TRUE.equals(success)) {
+                    System.out.println("Textbelt FREE SMS sent successfully to real phone: " + formattedPhone);
+                    return;
+                } else {
+                    System.err.println("Textbelt free quota limit or error: " + resBody.get("error"));
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error sending free Textbelt SMS: " + e.getMessage());
+        }
+
+        System.out.println("Mock logged above as fallback.");
     }
 }
