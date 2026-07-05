@@ -46,7 +46,7 @@ public class AuthController {
         }
         try {
             authService.sendOtp(phone);
-            return ResponseEntity.ok(Map.of("message", "OTP sent successfully"));
+            return ResponseEntity.ok(Map.of("success", true, "message", "OTP sent successfully"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", e.getMessage()));

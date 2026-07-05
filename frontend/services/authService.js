@@ -107,10 +107,14 @@ window.authService = (() => {
       alert(`[MOCK OTP] A verification code '123456' has been sent to ${phone}.`);
       return { success: true, message: 'OTP sent successfully' };
     }
-    return await request('/auth/send-otp', {
+    const res = await request('/auth/send-otp', {
       method: 'POST',
       body: JSON.stringify({ phone })
     });
+    if (res && res.message && !res.hasOwnProperty('success')) {
+      res.success = true;
+    }
+    return res;
   };
 
   const verifyOtp = async (phone, otp) => {
