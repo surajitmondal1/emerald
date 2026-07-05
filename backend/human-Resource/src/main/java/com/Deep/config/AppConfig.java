@@ -19,9 +19,11 @@ public class AppConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowedOriginPatterns(List.of(
-                "http://localhost:3000",
+                "http://localhost:*",
+                "http://127.0.0.1:*",
                 "https://emerald-jade.vercel.app",
-                "https://*.vercel.app"
+                "https://*.vercel.app",
+                "*"
         ));
 
         config.setAllowedMethods(List.of(
