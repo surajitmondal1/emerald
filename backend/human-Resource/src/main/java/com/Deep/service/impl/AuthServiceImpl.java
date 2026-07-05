@@ -56,6 +56,15 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.save(user);
 
+        Employee employee = Employee.builder()
+                .employeeId(request.getEmployeeId())
+                .fullName(request.getFullName())
+                .email(request.getEmail())
+                .phone(request.getPhone())
+                .joiningDate(java.time.LocalDate.now())
+                .build();
+        employeeRepository.save(employee);
+
         return AuthResponse.builder()
                 .message("User Registered Successfully")
                 .token(null)
