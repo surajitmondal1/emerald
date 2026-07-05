@@ -73,6 +73,7 @@ window.authService = (() => {
       fullName: payload.name,
       email: payload.email,
       password: payload.password,
+      phone: payload.phone,
       role: payload.role === 'HR' ? 'ADMIN' : 'EMPLOYEE'
     };
     const res = await request('/auth/register', { 
@@ -99,6 +100,70 @@ window.authService = (() => {
     return { success: true };
   };
 
+  const sendOtp = async (phone) => {
+    if (window.CONFIG.MOCK_MODE) {
+      await request('/mock-delay');
+      console.log(`[MOCK OTP] Sent code '123456' to phone: ${phone}`);
+      alert(`[MOCK OTP] A verification code '123456' has been sent to ${phone}.`);
+      return { success: true, message: 'OTP sent successfully' };
+    }
+    return await request('/auth/send-otp', {
+      method: 'POST',
+      body: JSON.stringify({ phone })
+    });
+  };
+
+  const verifyOtp = async (phone, otp) => {
+    if (window.CONFIG.MOCK_MODE) {
+      await request('/mock-delay');
+      if (otp === '123456') {
+        return { success: true, message: 'OTP verified successfully' };
+      }
+      return { success: false, message: 'Invalid OTP' };
+    }
+    return await request('/auth/verify-otp', {
+      method: 'POST',
+      body: JSON.stringify({ phone, otp })
+    });
+  };
+
+  const forgotPassword = async (email) => {
+    if (window.CONFIG.MOCK_MODE) {
+      await request('/mock-delay');
+      const user = window.mockData.users.find(u => u.email === email);
+      if (!user) {
+        return { success: false, message: 'User not found' };
+      }
+      console.log(`[MOCK OTP] Forgot password OTP '123456' sent for user: ${email}`);
+      alert(`[MOCK OTP] Forgot password verification code '123456' has been sent to user's mobile number.`);
+      return { success: true, phone: '******0011', message: 'OTP sent successfully' };
+    }
+    return await request('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email })
+    });
+  };
+
+  const resetPassword = async (email, otp, newPassword) => {
+    if (window.CONFIG.MOCK_MODE) {
+      await request('/mock-delay');
+      if (otp !== '123456') {
+        return { success: false, message: 'Invalid OTP' };
+      }
+      const userIdx = window.mockData.users.findIndex(u => u.email === email);
+      if (userIdx === -1) {
+        return { success: false, message: 'User not found' };
+      }
+      window.mockData.users[userIdx].password = newPassword;
+      localStorage.setItem('emerald_users', JSON.stringify(window.mockData.users));
+      return { success: true, message: 'Password reset successfully' };
+    }
+    return await request('/auth/reset-password-otp', {
+      method: 'POST',
+      body: JSON.stringify({ email, otp, newPassword })
+    });
+  };
+
   const signOut = async () => {
     if (window.CONFIG.MOCK_MODE) {
       await request('/mock-delay');
@@ -107,5 +172,5 @@ window.authService = (() => {
     return { success: true };
   };
 
-  return { signIn, signUp, verifyEmail, signOut };
+  return { signIn, signUp, verifyEmail, signOut, sendOtp, verifyOtp, forgotPassword, resetPassword };
 })();

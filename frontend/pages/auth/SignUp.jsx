@@ -5,6 +5,9 @@ window.SignUpModule = (() => {
     const [formData, setFormData] = useState({ companyName: '', name: '', email: '', phone: '', password: '', confirmPassword: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [otpSent, setOtpSent] = useState(false);
+    const [otpCode, setOtpCode] = useState('');
+    const [otpVerifying, setOtpVerifying] = useState(false);
 
     const validatePassword = (pass) => {
       if (pass.length < 8) return "Password must be at least 8 characters";
@@ -31,7 +34,29 @@ window.SignUpModule = (() => {
       }
 
       setLoading(true);
-      const res = await window.authService.signUp({
+      const res = await window.authService.sendOtp(formData.phone);
+      setLoading(false);
+
+      if (res.success) {
+        setOtpSent(true);
+      } else {
+        setError(res.message || 'Failed to send verification code. Please check the phone number.');
+      }
+    };
+
+    const handleVerifyAndRegister = async (e) => {
+      e.preventDefault();
+      setError('');
+      setOtpVerifying(true);
+
+      const verifyRes = await window.authService.verifyOtp(formData.phone, otpCode);
+      if (!verifyRes.success) {
+        setError(verifyRes.message || 'Invalid or expired OTP');
+        setOtpVerifying(false);
+        return;
+      }
+
+      const signupRes = await window.authService.signUp({
         companyName: formData.companyName,
         name: formData.name,
         email: formData.email,
@@ -39,15 +64,89 @@ window.SignUpModule = (() => {
         password: formData.password,
         role: 'HR'
       });
-      setLoading(false);
+      setOtpVerifying(false);
 
-      if (res.success) {
+      if (signupRes.success) {
         localStorage.setItem('companyName', formData.companyName);
         window.location.hash = '#/login?registered=true';
       } else {
-        setError(res.message || 'Signup failed');
+        setError(signupRes.message || 'Signup failed');
       }
     };
+
+    const handleResendOtp = async () => {
+      setError('');
+      setLoading(true);
+      const res = await window.authService.sendOtp(formData.phone);
+      setLoading(false);
+      if (res.success) {
+        alert("Verification code resent successfully!");
+      } else {
+        setError(res.message || 'Failed to resend verification code');
+      }
+    };
+
+    if (otpSent) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-base p-4">
+          <div className="w-full max-w-md card rounded-xl p-8 shadow-2xl text-center">
+            <div className="mb-6 flex justify-center flex-col items-center">
+              <div className="flex justify-center mb-4">
+                <img src="assets/logo.jpeg" alt="Emerald Logo" className="w-16 h-16 rounded-xl object-cover shadow-lg" />
+              </div>
+              <h2 className="text-2xl font-manrope font-bold text-primary mb-2">Verify Mobile</h2>
+              <p className="text-secondary text-sm">
+                We've sent a 6-digit verification code to <span className="font-semibold text-primary">{formData.phone}</span>.
+              </p>
+            </div>
+            
+            {error && <div className="mb-4 p-3 bg-status-absent/10 border border-status-absent/30 text-status-absent rounded text-sm text-left">{error}</div>}
+            
+            <form onSubmit={handleVerifyAndRegister} className="space-y-5">
+              <div>
+                <label className="block text-secondary text-xs font-medium mb-2 uppercase tracking-wider">Verification Code</label>
+                <input 
+                  type="text" 
+                  value={otpCode}
+                  onChange={e => setOtpCode(e.target.value)}
+                  placeholder="000000"
+                  maxLength={6}
+                  className="w-full text-center tracking-[0.5em] text-2xl font-manrope bg-base border border-subtle rounded-lg px-4 py-3 text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors"
+                  required
+                />
+              </div>
+              
+              <button 
+                type="submit"
+                disabled={otpVerifying}
+                className="w-full bg-accent text-base font-semibold py-2.5 rounded-lg text-base font-medium hover:bg-accent/90 transition-colors disabled:opacity-50"
+                style={{ color: '#0A0A0B' }}
+              >
+                {otpVerifying ? 'Verifying...' : 'Verify & Sign Up'}
+              </button>
+            </form>
+
+            <div className="mt-6 flex justify-between items-center text-sm text-secondary">
+              <button 
+                type="button" 
+                onClick={() => setOtpSent(false)} 
+                className="hover:text-primary transition-colors hover:underline"
+              >
+                &larr; Edit Details
+              </button>
+              <button 
+                type="button" 
+                onClick={handleResendOtp} 
+                disabled={loading}
+                className="text-accent hover:underline disabled:opacity-50"
+              >
+                Resend OTP
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-base p-4">

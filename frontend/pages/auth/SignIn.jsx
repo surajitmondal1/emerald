@@ -84,7 +84,7 @@ window.SignInModule = (() => {
                 </div>
                 <span className="text-sm text-secondary">Remember me</span>
               </label>
-              <a href="#" className="text-sm text-accent hover:underline">Forgot password?</a>
+              <a href="#/forgot-password" className="text-sm text-accent hover:underline">Forgot password?</a>
             </div>
 
             <button 

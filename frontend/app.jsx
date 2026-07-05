@@ -3,6 +3,7 @@ const { HashRouter, Route, Redirect } = window.RouterModule;
 const { SignIn } = window.SignInModule;
 const { SignUp } = window.SignUpModule;
 const { VerifyEmail } = window.VerifyEmailModule;
+const { ForgotPassword } = window.ForgotPasswordModule;
 const { EmployeeDashboard } = window.EmployeeDashboardModule;
 const { MyProfile } = window.MyProfileModule;
 const { MyAttendance } = window.MyAttendanceModule;
@@ -44,6 +45,10 @@ function AppContent() {
 
       <Route path="#/verify-email">
         {user ? <Redirect to={user.role === 'HR' ? '#/admin/dashboard' : '#/employee/dashboard'} /> : <VerifyEmail />}
+      </Route>
+      
+      <Route path="#/forgot-password">
+        {user ? <Redirect to={user.role === 'HR' ? '#/admin/dashboard' : '#/employee/dashboard'} /> : <ForgotPassword />}
       </Route>
       
       <Route path="#/employee/dashboard" exact>
